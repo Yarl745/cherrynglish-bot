@@ -23,6 +23,7 @@ class Database:
         )
         return cls(pool)
 
+
     async def create_all_tables_ine(self):
         sql = f"""
             CREATE TABLE IF NOT EXISTS Users(
@@ -44,14 +45,16 @@ class Database:
             CREATE TABLE IF NOT EXISTS Words(
                 id serial primary key,
                 set_id integer not null references Sets(id) on delete cascade,
-                assoc text,
-                word_photo_id integer not null,
-                translation_photo_id integer not null,
-                base_photo_id integer not null
+                assoc text DEFAULT '',
+                word_img_id varchar(120) not null,
+                transl_img_id varchar(120) not null,
+                base_img_id varchar(120) not null
             );
             CREATE INDEX IF NOT EXISTS set_for_words_idx ON Words(set_id);
         """
         await self.pool.execute(sql)
+
+        logging.info(f"Create all tables (if not exist)")
 
 
     async def add_set(self, **data) -> int:
@@ -71,7 +74,7 @@ class Database:
         return set_id
 
 
-    async def add_word(self, set_id, **data):
+    async def add_word(self, **data):
         columns = ", ".join(data.keys())
         nums = ", ".join(
             [f"${num}" for num in range(1, len(data) + 1)]
@@ -85,6 +88,8 @@ class Database:
 
 
     async def add_user(self, **data):
+        data.update(connected_user_ids=[data['id']])
+
         columns = ", ".join(data.keys())
         nums = ", ".join(
             [f"${num}" for num in range(1, len(data) + 1)]
@@ -94,7 +99,6 @@ class Database:
                     INSERT INTO Users({columns}) VALUES ({nums});
                 """
 
-        data.update(connected_user_ids=[data['id']])
         logging.info(f"Add new user @{data['username']}-{data['id']}")
 
         await self.pool.execute(sql, *data.values())
