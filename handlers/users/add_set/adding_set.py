@@ -119,7 +119,7 @@ async def save_set(msg: Message, state: FSMContext):
     await redis_commands.set_last_crop_range(user.id, crop_range)
 
     await msg.answer(
-        "Ваш набор слов был успеешно создан!",
+        "Твой набор слов был успеешно создан!",
         reply_markup=keyboards.default.bot_menu
     )
     await msg.answer_sticker("CAACAgIAAxkBAAIB-2BQzR9z-1xm1HM6zK9C_yBuTwgdAAIdAAPANk8TXtim3EE93kgeBA")
@@ -132,24 +132,31 @@ async def save_set(msg: Message, state: FSMContext):
 async def config_crop_range(msg: Message, state: FSMContext):
     user = msg.from_user
     crop_range_str = msg.text
-    crop_range = [int(num) for num in crop_range_str.split(" ")]
 
-    if not crop_range_str.replace(" ", "").isdecimal() or len(crop_range) != 3:
+    if not crop_range_str.replace(" ", "").isdecimal() or len(crop_range_str.split(" ")) != 3:
         await msg.answer(
             "Вводить диапазон нужно тремя целыми числами, через пробел 🥴\n"
             "<i>Пример ввода: 300 470 1150</i>"
         )
         return
 
+    crop_range = [int(num) for num in crop_range_str.split(" ")]
     crop_range.sort()
 
     photo_id: str = (await state.get_data())["photo_ids"][0]
     await msg.bot.send_chat_action(user.id, "upload_photo")
 
     img_file = BytesIO()
-    await (await msg.bot.get_file(photo_id)).download(destination=img_file)
+    photo = await msg.bot.get_file(photo_id)
+
+    await photo.download(destination=img_file)
 
     word_img, transl_img = await get_separated_imgs(img_file, *crop_range)
+
+    if not word_img:
+        await msg.answer("Ты задал(-а) дипазон, который выходит за пределы размера картинки 🥴\n"
+                         "На картинке с зелённой полосой показаны допустимые для тебя значения высоты.")
+        return
 
     separated_imgs_album = MediaGroup()
     separated_imgs_album.attach_many(

@@ -27,6 +27,10 @@ def get_drawn_img(img_file: BytesIO) -> InputFile:
 def get_separated_imgs(img_file: BytesIO, start, middle, end) -> tuple:
     img: Image.Image = Image.open(img_file)
 
+    for param in (start, middle, end):
+        if param > img.size[1] or param < 0:
+            return None, None
+
     word_img_file, transl_img_file = BytesIO(), BytesIO()
 
     img.crop((0, start, img.size[0], middle)).save(word_img_file, format="png")
