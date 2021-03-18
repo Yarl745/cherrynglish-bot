@@ -10,6 +10,7 @@ async def on_startup(dispatcher):
     await on_startup_notify(dispatcher)
 
     await db.create_all_tables_ine()
+    await db.config_timezone()
 
 
 if __name__ == '__main__':

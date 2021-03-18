@@ -1,6 +1,7 @@
 from .test import dp
 
 from .add_set import dp
+from .connect_user import dp
 
 from .start import dp
 from .help import dp

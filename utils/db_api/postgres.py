@@ -25,12 +25,12 @@ class Database:
 
 
     async def create_all_tables_ine(self):
-        sql = f"""
+        sql = """
             CREATE TABLE IF NOT EXISTS Users(
                 id integer PRIMARY KEY,
                 username varchar(64) not null,
                 full_name varchar(64) not null,
-                connected_user_ids integer[] not null
+                connected_user_ids integer[] default '{}' 
             );
             
             CREATE TABLE IF NOT EXISTS Sets(
@@ -40,7 +40,6 @@ class Database:
                 public_date date default now()
             );
             CREATE INDEX IF NOT EXISTS user_for_sets_idx ON Sets(user_id);
-            ALTER DATABASE {config.PG_DB} SET timezone TO 'Europe/Kiev';
             
             CREATE TABLE IF NOT EXISTS Words(
                 id serial primary key,
@@ -55,6 +54,11 @@ class Database:
         await self.pool.execute(sql)
 
         logging.info(f"Create all tables (if not exist)")
+
+
+    async def config_timezone(self):
+        await self.pool.execute(f"ALTER DATABASE {config.PG_DB} SET timezone TO 'Europe/Kiev';")
+        logging.info(f"Config timezone")
 
 
     async def add_set(self, **data) -> int:
@@ -88,8 +92,6 @@ class Database:
 
 
     async def add_user(self, **data):
-        data.update(connected_user_ids=[data['id']])
-
         columns = ", ".join(data.keys())
         nums = ", ".join(
             [f"${num}" for num in range(1, len(data) + 1)]
@@ -104,23 +106,58 @@ class Database:
         await self.pool.execute(sql, *data.values())
 
 
-    async def add_connecting_user(self, user_id: int, connecting_user_id: int):
+    async def is_users_connected(self, user_id: int, connected_user_id: int):
+        sql = """
+               SELECT array_position(connected_user_ids, $2) FROM Users WHERE id = $1;
+           """
+
+        is_connected = True if await self.pool.fetchval(sql, user_id, connected_user_id) else False
+        logging.info(f"Check User-{connected_user_id} already connected to User-{user_id} --- {is_connected}")
+
+        return is_connected
+
+
+    async def add_connected_user(self, user_id: int, connected_user_id: int):
         sql = """
             UPDATE Users
                 SET connected_user_ids = array_append(connected_user_ids, $2)
                     WHERE id = $1;
         """
 
-        logging.info(f"Add connecting User-{connecting_user_id} for User-{user_id}")
+        logging.info(f"Add connecting User-{connected_user_id} for User-{user_id}")
 
-        await self.pool.execute(sql, user_id, connecting_user_id)
+        await self.pool.execute(sql, user_id, connected_user_id)
+
+
+    async def get_connected_users(self, user_id: int):
+        sql = """
+            SELECT id, full_name, username FROM Users
+                WHERE id IN (SELECT unnest(connected_user_ids) FROM Users WHERE id=$1);
+        """
+        connected_users: list = await self.pool.fetch(sql, user_id)
+
+        logging.info(f"For user-{user_id} get connected_user -- {connected_users}")
+
+        return connected_users
+
+
+    async def del_connected_user(self, user_id: int, connected_user_id: int):
+        sql = """
+            UPDATE Users
+                SET connected_user_ids = array_remove(connected_user_ids, $2)
+                    WHERE id = $1;
+        """
+
+        await self.pool.execute(sql, user_id, connected_user_id)
+
+        logging.info(f"For user-{user_id} delete connected_user_id {connected_user_id}")
 
 
     async def get_sets(self, user_id: int, page: int) -> list:
         offset = (page-1) * 10
         sql = """
             SELECT id, name FROM Sets
-                WHERE user_id in (SELECT connected_user_ids FROM Users WHERE id=$1)
+                WHERE user_id in (SELECT unnest(connected_user_ids) FROM Users WHERE id=$1) OR user_id=$1
                     ORDER BY public_date DESC
                         LIMIT 10 OFFSET $2;
         """

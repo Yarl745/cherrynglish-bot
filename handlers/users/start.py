@@ -1,14 +1,46 @@
 import asyncio
 import logging
+import re
 
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.builtin import CommandStart
+from aiogram.dispatcher.filters import CommandStart
+from aiogram.types import Message
+from aiogram.utils.deep_linking import decode_payload
 
 import keyboards
 from filters import IsUser
 from loader import dp, db
 from utils.db_api import redis_commands
+
+
+@dp.message_handler(CommandStart(deep_link=re.compile(r"\w+"), encoded=True))
+async def ask_to_connect(msg: Message):
+    user = msg.from_user
+    friend_id = int(decode_payload(msg.get_args()))
+
+    if not (await redis_commands.is_user(user.id)):
+        await bot_start(msg)
+
+    if user.id == friend_id:
+        return
+    elif not (await redis_commands.is_user(friend_id)):
+        await msg.answer("Такого пользователя не существует...", reply_markup=keyboards.default.bot_menu)
+        await msg.answer_sticker("CAACAgIAAxkBAAIDXGBRMulMsWISnPXOc16gVBC-09MmAAIYAAPANk8T1vonv5xqGPgeBA")
+        return
+    elif await db.is_users_connected(user.id, friend_id):
+        await msg.answer("Ты уже закреплен за этого пользователя...", reply_markup=keyboards.default.bot_menu)
+        await msg.answer_sticker("CAACAgIAAxkBAAIEu2BTYZvJKYkVXcleRsmhI8V4q4A9AAINAAPANk8TpPnh9NR4jVMeBA")
+        return
+
+    friend = (await msg.bot.get_chat_member(friend_id, friend_id)).user
+
+    await msg.answer(
+        "Хочешь зацепится за @{}?".format(friend.username),
+        reply_markup=keyboards.inline.get_connect_user_menu(friend_id)
+    )
+
+    logging.info(f"Ask @{user.username}-{user.id} to connect by connection_link to @{friend.username}-{friend_id}")
 
 
 @dp.message_handler(CommandStart(), IsUser())
