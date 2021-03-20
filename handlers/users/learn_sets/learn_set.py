@@ -180,6 +180,11 @@ async def add_assoc(msg: Message, state: FSMContext):
     user = msg.from_user
     assoc = msg.text
 
+    if len(assoc) > 125:
+        await msg.answer("Какая-то слишком длинная ассоциация у тебя 🥴\n\n"
+                         "Поробуй уложиться в 125 символов:")
+        return
+
     await msg.delete()
     async with state.proxy() as data:
         await msg.bot.delete_message(user.id, data.pop("ask_msg_id"))
