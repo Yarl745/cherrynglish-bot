@@ -14,10 +14,17 @@ async def clean_previous_menu_msg(msg: Message, state: FSMContext):
         connecting_msg_id = data.get("connecting_msg_id", None)
 
         if learn_words_msg_id:
-            await msg.bot.delete_message(user_id, learn_words_msg_id)
+            msg_to_delete_id = learn_words_msg_id
         elif sets_msg_id:
-            await msg.bot.delete_message(user_id, sets_msg_id)
+            msg_to_delete_id = sets_msg_id
         elif connecting_msg_id:
-            await msg.bot.delete_message(user_id, connecting_msg_id)
+            msg_to_delete_id = connecting_msg_id
+        else:
+            msg_to_delete_id = msg.message_id
+
+        await msg.bot.delete_message(user_id, msg_to_delete_id)
+
+        if msg_to_delete_id != msg.message_id:
+            await msg.bot.delete_message(user_id, msg.message_id)
 
     logging.info(f"Clean previous menu for User-{user_id}")

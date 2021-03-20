@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from environs import Env
 
 # Теперь используем вместо библиотеки python-dotenv библиотеку environs
@@ -20,6 +22,15 @@ EXAMPLE_IMGS = (
     "AgACAgIAAxkBAANJYE3U9uDsrNZpza-od4sfY4AihI8AAgOyMRuI1HFK4JvEfAyW9q-h0Q-bLgADAQADAgADeQADCgQEAAEeBA",
     "AgACAgIAAxkBAANNYE3VZ5BG0B6UgKrh2sFqOjdDtDAAAgmyMRuI1HFK8bYL4g_sQ2NoZomeLgADAQADAgADeQADjMwDAAEeBA"
 )
+
+
+repeat_stages = [
+    timedelta(minutes=30), timedelta(hours=1), timedelta(hours=3),
+    timedelta(days=1), timedelta(days=2), timedelta(days=4),
+    timedelta(days=8), timedelta(days=14), timedelta(days=30),
+    timedelta(days=90), timedelta(days=180), timedelta(days=360),
+    timedelta(days=720)
+]
 
 
 HELPER_CHANNEL_ID = -1001316268421

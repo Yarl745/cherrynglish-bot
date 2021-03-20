@@ -6,6 +6,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, InputMediaPhoto, InputFile, Message
 
 import keyboards
+from handlers.users.repeat_notifications.notify_to_repeat import schedule_repeat
 from keyboards.inline.sets_menu import sets_menu_callback
 from keyboards.inline.word_menu import word_menu_callback
 from loader import dp, db, bot
@@ -62,6 +63,10 @@ async def know_word(call: CallbackQuery, state: FSMContext):
         await msg.answer("Поздравляю! Теперь ты знаешь этот набор.",
                          reply_markup=keyboards.default.bot_menu)
         await msg.answer_sticker("CAACAgIAAxkBAAEIu69gVLjRs19x-GQrM1RvAjXPc9HFXAACHQADwDZPE17YptxBPd5IHgQ")
+
+        data = await state.get_data()
+        await schedule_repeat(user.id, data["set_id"], data["set_name"])
+
         await state.finish()
         return
 
@@ -182,7 +187,7 @@ async def add_assoc(msg: Message, state: FSMContext):
         learn_words_msg_id = data["learn_words_msg_id"]
     await state.reset_state(with_data=False)
 
-    new_assoc = await db.add_assoc(word_id_for_assoc, assoc)
+    new_assoc = await db.update_assoc(word_id_for_assoc, assoc)
 
     await reload_transl_side(word_id_for_assoc, user.id, learn_words_msg_id)
 

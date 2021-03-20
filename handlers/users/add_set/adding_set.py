@@ -195,7 +195,3 @@ async def prepare_words_data(set_id: int, photo_ids: list, crop_range: list) -> 
         ))
 
     return words_data
-
-
-
-

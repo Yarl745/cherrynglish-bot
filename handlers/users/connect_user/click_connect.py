@@ -29,7 +29,6 @@ async def show_connection_link(msg: Message, state: FSMContext):
     )).message_id
 
     await state.update_data(connecting_msg_id=connecting_msg_id)
-    await msg.delete()
 
     logging.info(f"Show connection menu for @{user.username}-{user.id}")
 

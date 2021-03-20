@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 from aioredis import Redis
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgiref.sync import async_to_sync
 
 from data import config
@@ -18,4 +19,6 @@ loop = asyncio.get_event_loop()
 db: Database = loop.run_until_complete(Database.create())
 
 redis: Redis = async_to_sync(aioredis.create_redis_pool)('redis://localhost', db=2)
+
+scheduler = AsyncIOScheduler()
 

@@ -25,7 +25,6 @@ async def show_sets(msg: Message, state: FSMContext):
     )).message_id
 
     await state.update_data(sets_msg_id=sets_msg_id)
-    await msg.delete()
 
     logging.info(f"Show connection menu for @{user.username}-{user.id}")
 

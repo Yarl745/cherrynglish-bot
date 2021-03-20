@@ -55,13 +55,62 @@ class Database:
             CREATE TABLE IF NOT EXISTS Repeats(
                 set_id integer not null references Sets(id) on delete cascade,
                 user_id integer not null,
+                set_name varchar(50) not null,
                 repeat_time timestamp not null,
+                repeat_stage smallint not null default 0,
                 PRIMARY KEY (set_id, user_id)
             );      
         """
         await self.pool.execute(sql)
 
         logging.info(f"Create all tables (if not exist)")
+
+
+    async def get_repeat(self, user_id: int, set_id: int) -> dict:
+        sql = """
+            SELECT repeat_stage, repeat_time FROM Repeats
+                WHERE user_id=$1 AND set_id=$2
+                    LIMIT 1;
+        """
+        repeat = await self.pool.fetchrow(sql, user_id, set_id)
+        logging.info(f"Get repeat [{repeat}] for User-{user_id} on the set-{set_id}")
+        return repeat
+
+
+    async def get_all_repeats(self) -> list:
+        sql = """
+            SELECT * FROM Repeats;
+        """
+        repeats = await self.pool.fetch(sql)
+        logging.info(f"Get all repeats [{repeats}]")
+        return repeats
+
+
+    async def update_repeat(self, user_id: int, set_id: int, **data):
+        values = ", ".join([f"{key}=${num}" for num, key in enumerate(data, start=3)])
+        sql = f"""
+            UPDATE Repeats
+                SET {values}
+                    WHERE user_id=$1 and set_id=$2;
+        """
+        await self.pool.execute(sql, user_id, set_id, *data.values())
+        logging.info(f"For User-{user_id} on the set-{set_id} update repeat data -> [{data}]")
+
+
+    async def add_repeat(self, **data):
+        user_id = data["user_id"]
+        set_id = data["set_id"]
+
+        columns = ", ".join(data.keys())
+        nums = ", ".join(
+            [f"${num}" for num in range(1, len(data)+1)]
+        )
+
+        sql = f"""
+            INSERT INTO Repeats({columns}) VALUES ({nums});
+        """
+        await self.pool.execute(sql, *data.values())
+        logging.info(f"For User-{user_id} on the set-{set_id} add repeat data -> [{data}]")
 
 
     async def clean_assoc(self, word_id: int):
@@ -74,7 +123,7 @@ class Database:
         logging.info(f"Clean all assoc in word {word_id}")
 
 
-    async def add_assoc(self, word_id: int, assoc: str):
+    async def update_assoc(self, word_id: int, assoc: str):
         sql = """
             UPDATE Words
                 SET assoc = concat(assoc, '\n\n', $2::text) 
@@ -184,6 +233,18 @@ class Database:
         logging.info(f"For user-{user_id} delete connected_user_id {connected_user_id}")
 
 
+    async def get_set_name(self, set_id: int) -> str:
+        sql = """
+            SELECT name FROM Sets WHERE id=$1 LIMIT 1;
+        """
+
+        set_name = await self.pool.fetchval(sql, set_id)
+
+        logging.info(f"Get set_name[{set_name}] for set-{set_id}")
+
+        return set_name
+
+
     async def get_sets(self, user_id: int, page: int) -> list:
         page = 1 if page < 1 else page
         offset = (page-1) * 10
@@ -230,14 +291,3 @@ class Database:
         logging.info(f"Get word_ids-{word_ids} in set-{set_id} for user")
 
         return word_ids
-
-
-    async def is_user_exists(self, user_id: int) -> bool:
-        sql = """
-            SELECT True as is_exists FROM Users WHERE id = $1;
-        """
-        is_exists = True if await self.pool.fetchrow(sql, user_id) else False
-
-        logging.info(f"Is user-{user_id} exist --- {is_exists}")
-
-        return is_exists
