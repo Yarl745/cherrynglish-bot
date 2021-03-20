@@ -19,7 +19,7 @@ async def show_connection_link(msg: Message, state: FSMContext):
 
     await clean_previous_menu_msg(msg, state)
     await state.finish()
-
+    print(1)
     connect_link = await get_start_link(user.id, encode=True)
 
     connecting_msg_id = (await msg.answer(

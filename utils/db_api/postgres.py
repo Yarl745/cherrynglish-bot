@@ -128,8 +128,9 @@ class Database:
         )
 
         sql = f"""
-                    INSERT INTO Users({columns}) VALUES ({nums});
-                """
+                    INSERT INTO Users({columns}) VALUES ({nums})
+                        ON CONFLICT DO NOTHING;
+        """
 
         logging.info(f"Add new user @{data['username']}-{data['id']}")
 

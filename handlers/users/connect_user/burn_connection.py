@@ -37,6 +37,7 @@ async def burn_connection(call: CallbackQuery, state: FSMContext, callback_data:
     await db.del_connected_user(with_user_id, user.id)
 
     await msg.delete()
+    await state.finish()
     await show_connection_link(msg, state)
 
     logging.info(f"@{user.username}-{user.id} burned connection with {with_user_id}")
@@ -50,6 +51,7 @@ async def cancel_burn_connection(call: CallbackQuery, state: FSMContext, callbac
     with_user_id = int(callback_data["with_user_id"])
 
     await msg.delete()
+    await state.finish()
     await show_connection_link(msg, state)
 
     logging.info(f"@{user.username}-{user.id} canceled burn connection with {with_user_id}")
