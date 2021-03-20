@@ -291,3 +291,14 @@ class Database:
         logging.info(f"Get word_ids-{word_ids} in set-{set_id} for user")
 
         return word_ids
+
+
+    async def get_users(self) -> list:
+        sql = """
+            SELECT username, id as user_id FROM Users
+                ORDER BY id;
+        """
+        users = await self.pool.fetch(sql)
+        logging.info(f"Fetch users -> {users}")
+        return users
+
