@@ -1,4 +1,5 @@
 import logging
+import random
 
 import asyncpg
 from asyncpg import Pool
@@ -37,23 +38,52 @@ class Database:
                 id serial primary key,
                 user_id integer not null references Users(id) on delete cascade,
                 name varchar(50) not null,
-                public_date date default now()
+                public_timestamp timestamp default now()
             );
             CREATE INDEX IF NOT EXISTS user_for_sets_idx ON Sets(user_id);
             
             CREATE TABLE IF NOT EXISTS Words(
                 id serial primary key,
                 set_id integer not null references Sets(id) on delete cascade,
-                assoc text DEFAULT '',
+                assoc text DEFAULT ' ',
                 word_img_id varchar(120) not null,
                 transl_img_id varchar(120) not null,
                 base_img_id varchar(120) not null
             );
             CREATE INDEX IF NOT EXISTS set_for_words_idx ON Words(set_id);
+            
+            CREATE TABLE IF NOT EXISTS Repeats(
+                set_id integer not null references Sets(id) on delete cascade,
+                user_id integer not null,
+                repeat_time timestamp not null,
+                PRIMARY KEY (set_id, user_id)
+            );      
         """
         await self.pool.execute(sql)
 
         logging.info(f"Create all tables (if not exist)")
+
+
+    async def clean_assoc(self, word_id: int):
+        sql = """
+            UPDATE Words
+                SET assoc = ' '
+                    WHERE id = $1;  
+        """
+        await self.pool.execute(sql, word_id)
+        logging.info(f"Clean all assoc in word {word_id}")
+
+
+    async def add_assoc(self, word_id: int, assoc: str):
+        sql = """
+            UPDATE Words
+                SET assoc = concat(assoc, '\n\n', $2::text) 
+                    WHERE id = $1
+                        RETURNING assoc; 
+        """
+        new_assoc = await self.pool.fetchval(sql, word_id, assoc)
+        logging.info(f"Add assoc [{assoc}] for word {word_id}")
+        return new_assoc
 
 
     async def config_timezone(self):
@@ -154,11 +184,12 @@ class Database:
 
 
     async def get_sets(self, user_id: int, page: int) -> list:
+        page = 1 if page < 1 else page
         offset = (page-1) * 10
         sql = """
             SELECT id, name FROM Sets
                 WHERE user_id in (SELECT unnest(connected_user_ids) FROM Users WHERE id=$1) OR user_id=$1
-                    ORDER BY public_date DESC
+                    ORDER BY public_timestamp DESC
                         LIMIT 10 OFFSET $2;
         """
 
@@ -169,15 +200,35 @@ class Database:
         return sets
 
 
-    async def get_words_by_set_id(self, set_id: int) -> list:
+    async def get_word_side(self, word_id: int) -> dict:
         sql = """
-            SELECT * FROM Words
-                WHERE set_id=$1;
+            SELECT id as word_id, set_id, word_img_id FROM Words
+                WHERE id = $1 LIMIT 1;
+        """
+        word_side = await self.pool.fetchrow(sql, word_id)
+        return word_side
+
+
+    async def get_transl_side(self, word_id: int) -> dict:
+        sql = """
+            SELECT id as word_id, set_id, transl_img_id, assoc FROM Words
+                WHERE id = $1 LIMIT 1;
+        """
+        transl_side = await self.pool.fetchrow(sql, word_id)
+        return transl_side
+
+
+    async def get_shuffled_word_ids(self, set_id: int) -> list:
+        sql = """
+            SELECT id as word_id FROM Words WHERE set_id=$1;
         """
 
-        logging.info(f"Get words in set-{set_id} for user")
+        word_ids = await self.pool.fetch(sql, set_id)
+        random.shuffle(word_ids)
 
-        return await self.pool.fetch(sql, set_id)
+        logging.info(f"Get word_ids-{word_ids} in set-{set_id} for user")
+
+        return word_ids
 
 
     async def is_user_exists(self, user_id: int) -> bool:

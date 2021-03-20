@@ -22,7 +22,8 @@ async def connect_to_user(call: CallbackQuery, state: FSMContext, callback_data:
     friend = (await msg.bot.get_chat_member(friend_id, friend_id)).user
 
     await msg.delete()
-    await msg.answer("Ждём пока @{} подтвердит твой запрос...".format(friend.username))
+    await msg.answer("Ждём пока @{} подтвердит твой запрос...".format(friend.username),
+                     reply_markup=keyboards.default.bot_menu)
     await msg.answer_sticker("CAACAgIAAxkBAAIDZmBRR71MwVLXmHhAWfgfJJTqajMxAAIMAAPANk8T4s8j_8J3n7weBA")
 
     await notify_to_confirm(friend_id, user.id)
@@ -40,7 +41,7 @@ async def connect_to_user(call: CallbackQuery, state: FSMContext, callback_data:
 
     await msg.delete()
 
-    await msg.answer("Соединение было отменено(")
+    await msg.answer("Соединение было отменено(", reply_markup=keyboards.default.bot_menu)
     await msg.answer_sticker("CAACAgIAAxkBAAIETGBTWE8YswPPd3Q_A0KVwjWhzuxJAAIRAAPANk8TDaqzD9wePuUeBA")
 
     await call.answer()
@@ -56,6 +57,8 @@ async def confirm_connection(call: CallbackQuery, state: FSMContext, callback_da
 
     with_user = (await bot.get_chat_member(with_user_id, with_user_id)).user
 
+    await msg.delete()
+
     if await db.is_users_connected(user.id, with_user_id):
         await msg.answer("Ты уже закреплен за этого пользователя...")
         await msg.answer_sticker("CAACAgIAAxkBAAIEu2BTYZvJKYkVXcleRsmhI8V4q4A9AAINAAPANk8TpPnh9NR4jVMeBA")
@@ -64,7 +67,6 @@ async def confirm_connection(call: CallbackQuery, state: FSMContext, callback_da
     await db.add_connected_user(user.id, with_user_id)
     await db.add_connected_user(with_user_id, user.id)
 
-    await msg.delete()
     await notify_about_confirmation(user.id, with_user_id)
     await notify_about_confirmation(with_user_id, user.id)
 

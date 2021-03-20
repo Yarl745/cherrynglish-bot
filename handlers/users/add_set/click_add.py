@@ -8,6 +8,7 @@ from data.config import EXAMPLE_IMGS
 from filters import IsUser
 from loader import dp
 from states.adding_set import AddingSet
+from utils import clean_previous_menu_msg
 
 
 @dp.message_handler(IsUser(), text="Добавить✨")
@@ -28,8 +29,13 @@ async def show_adding_info(msg: Message, state: FSMContext):
         reply_markup=keyboards.default.read_photo_menu
     )
 
-    await AddingSet.read_photos.set()
+    await clean_previous_menu_msg(msg, state)
+    await state.finish()
     await state.update_data(photo_ids=[])
+
+    await msg.delete()
+
+    await AddingSet.read_photos.set()
 
     logging.info(f"Show adding set info for @{user.username}-{user.id}")
 

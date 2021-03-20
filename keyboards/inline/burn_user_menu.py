@@ -13,7 +13,7 @@ async def get_burn_user_menu(user_id: int):
     connected_users = await db.get_connected_users(user_id)
 
     for connected_user in connected_users:
-        burn_user_menu.add(
+        burn_user_menu.insert(
             InlineKeyboardButton(
                 "{}🔥".format(connected_user["full_name"]),
                 callback_data=burn_user_menu_callback.new(
