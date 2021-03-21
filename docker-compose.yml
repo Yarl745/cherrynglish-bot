@@ -2,6 +2,22 @@ version: "3.5"
 
 
 services:
+  bot:
+    container_name: cherrynglishbot
+    build:
+      context: .
+    command: python app.py
+    restart: always
+    networks:
+      - cherrynet
+    env_file:
+      - ".env"
+    volumes:
+      - .:/src
+    depends_on:
+      - db
+      - redis
+
   db:
     container_name: cherry_postgres
     restart: always
@@ -29,7 +45,7 @@ services:
 
 volumes:
   cherry_data:
-    name: cherry_volume_volume
+    name: cherry_volume
     driver: local
 
 

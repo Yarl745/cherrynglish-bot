@@ -44,8 +44,10 @@ async def ask_to_connect(msg: Message):
 
 
 @dp.message_handler(CommandStart(), IsUser())
-async def bot_start_by_user(msg: types.Message):
+async def bot_start_by_user(msg: types.Message, state: FSMContext):
     user = msg.from_user
+
+    await state.finish()
 
     await msg.answer(
         f"Привет, {user.full_name}, черешенка тебя помнит!",

@@ -7,6 +7,7 @@ from aiogram.types import ContentTypes, Message, ReplyKeyboardRemove, InputFile,
 import keyboards
 from data.config import HELPER_CHANNEL_ID
 from filters import IsUser
+from handlers.users.add_set.click_add import show_adding_info
 from loader import dp, db, bot
 from states.adding_set import AddingSet
 from utils.db_api import redis_commands
@@ -111,6 +112,14 @@ async def save_set(msg: Message, state: FSMContext):
     )
 
     words_data = await prepare_words_data(set_id, photo_ids, crop_range)
+
+    if not words_data:
+        await msg.answer("Ты задал(-а) дипазон, который выходит за пределы размера какого-то "
+                         "твоего скриншота 🥴\n"
+                         "Постарайся добавлять скриншоты одного размера!")
+        await show_adding_info(msg, state)
+        return
+
     logging.info(f"Prepared words data for @{user.username}-{user.id}")
 
     for word_data in words_data:
@@ -187,8 +196,12 @@ async def prepare_words_data(set_id: int, photo_ids: list, crop_range: list) -> 
     for photo_id in photo_ids:
         img_file = BytesIO()
         await (await bot.get_file(photo_id)).download(destination=img_file)
-
         word_img, transl_img = await get_separated_imgs(img_file, *crop_range)
+
+        # If some img from the range smaller than the crop size
+        if not word_img:
+            return None
+
         word_img_id = (await bot.send_photo(HELPER_CHANNEL_ID, word_img)).photo[-1].file_id
         transl_img_id = (await bot.send_photo(HELPER_CHANNEL_ID, transl_img)).photo[-1].file_id
 

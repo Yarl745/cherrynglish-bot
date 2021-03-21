@@ -1,5 +1,6 @@
 import logging
 
+from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, MediaGroup
 
@@ -13,7 +14,7 @@ from utils import clean_previous_menu_msg
 
 @dp.message_handler(IsUser(), text="Добавить✨")
 async def show_adding_info(msg: Message, state: FSMContext):
-    user = msg.from_user
+    user = types.User.get_current()
 
     help_album = get_help_album(
         caption="Для того чтобы добавить свой набор слов, нужно:\n"
@@ -21,10 +22,9 @@ async def show_adding_info(msg: Message, state: FSMContext):
                 "2) перейти в Cherrynglish бота;\n"
                 "3) прикрепить все скриншоты слов, которые будут в твоём наборе.",
     )
-    await msg.answer_media_group(
-        media=help_album,
-
-    )
+    # await msg.answer_media_group(
+    #     media=help_album
+    # )
     await msg.answer(
         "Сначала прикрепи скриншоты:",
         reply_markup=keyboards.default.read_photo_menu

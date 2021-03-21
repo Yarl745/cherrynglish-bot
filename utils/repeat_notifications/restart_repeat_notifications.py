@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from handlers.users.repeat_notifications.notify_to_repeat import notify_to_repeat
+from utils.repeat_notifications.notify_to_repeat import notify_to_repeat
 from loader import db, scheduler
 
 

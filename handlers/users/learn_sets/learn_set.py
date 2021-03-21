@@ -1,17 +1,14 @@
 import logging
-import random
 
-from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.types import CallbackQuery, InputMediaPhoto, InputFile, Message
+from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 
 import keyboards
-from handlers.users.repeat_notifications.notify_to_repeat import schedule_repeat
+from utils.repeat_notifications.notify_to_repeat import schedule_repeat
 from keyboards.inline.sets_menu import sets_menu_callback
 from keyboards.inline.word_menu import word_menu_callback
 from loader import dp, db, bot
 from utils import clean_previous_menu_msg
-from utils.db_api import redis_commands
 
 
 @dp.callback_query_handler(sets_menu_callback.filter(action="open_set"))

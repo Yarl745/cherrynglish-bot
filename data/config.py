@@ -15,6 +15,11 @@ PG_USER = env.str("PG_USER")
 PG_PASSWORD = env.str("PG_PASSWORD")
 PG_DB = env.str("PG_DB")
 PG_PORT = env.str("PG_PORT")
+PG_HOST = env.str("PG_HOST")
+
+REDIS_HOST = env.str("REDIS_HOST")
+REDIS_PORT = env.str("REDIS_PORT")
+REDIS_PASSWORD = env.str("REDIS_PASSWORD")
 
 
 EXAMPLE_IMGS = (

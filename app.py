@@ -1,8 +1,8 @@
 from aiogram import executor
 
-from handlers.users.repeat_notifications.restart_repeat_notifications import restart_repeat_notifications
-from loader import dp, db, scheduler
-import middlewares, filters, handlers
+from utils.repeat_notifications.restart_repeat_notifications import restart_repeat_notifications
+from loader import db, scheduler
+from handlers import dp
 from utils.notify_admins import on_startup_notify
 
 

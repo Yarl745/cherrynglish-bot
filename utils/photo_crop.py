@@ -10,7 +10,7 @@ from asgiref.sync import sync_to_async
 def get_drawn_img(img_file: BytesIO) -> InputFile:
     img: Image.Image = Image.open(img_file)
     draw = ImageDraw(img)
-    fnt = ImageFont.truetype("arial.ttf", 70)
+    fnt = ImageFont.truetype("DejaVuSans.ttf", 70)
 
     draw.line((0, 0, 0, img.size[1]), width=12, fill=65280)
     draw.text((15, 0), str(0), font=fnt, fill=65280)
