@@ -24,8 +24,8 @@ loop = asyncio.get_event_loop()
 db: Database = loop.run_until_complete(Database.create())
 
 # redis://:p2844fdfe9ec9da59733...
+# redis_uri = f"redis://{REDIS_HOST}"
 redis_uri = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
-redis_uri = f"redis://{REDIS_HOST}"
 redis: Redis = async_to_sync(aioredis.create_redis_pool)(redis_uri, db=1)
 
 scheduler = AsyncIOScheduler()

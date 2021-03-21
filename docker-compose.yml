@@ -11,42 +11,42 @@ services:
     networks:
       - cherrynet
     env_file:
-      - ".env"
+      - ".env.dist"
     volumes:
       - .:/src
-    depends_on:
-      - db
-      - redis
-
-  db:
-    container_name: cherry_postgres
-    restart: always
-    image: postgres:12
-    environment:
-      POSTGRES_USER: $PG_USER
-      POSTGRES_PASSWORD: $PG_PASSWORD
-      POSTGRES_DB: $PG_DB
-    ports:
-    - 5432:5432
-    volumes:
-      - cherry_data:/var/lib/postgresql/data
-    networks:
-      - cherrynet
-
-  redis:
-    container_name: cherry_redis
-    restart: always
-    image: redis:5
-    networks:
-      - cherrynet
-    ports:
-      - 6379:6379
-
-
-volumes:
-  cherry_data:
-    name: cherry_volume
-    driver: local
+#    depends_on:
+#      - db
+#      - redis
+#
+#  db:
+#    container_name: cherry_postgres
+#    restart: always
+#    image: postgres:12
+#    environment:
+#      POSTGRES_USER: $PG_USER
+#      POSTGRES_PASSWORD: $PG_PASSWORD
+#      POSTGRES_DB: $PG_DB
+#    ports:
+#    - 5432:5432
+#    volumes:
+#      - cherry_data:/var/lib/postgresql/data
+#    networks:
+#      - cherrynet
+#
+#  redis:
+#    container_name: cherry_redis
+#    restart: always
+#    image: redis:5
+#    networks:
+#      - cherrynet
+#    ports:
+#      - 6379:6379
+#
+#
+#volumes:
+#  cherry_data:
+#    name: cherry_volume
+#    driver: local
 
 
 networks:
