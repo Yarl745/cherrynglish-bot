@@ -16,7 +16,7 @@ async def restart_state(msg: types.Message, state: FSMContext):
     await state.finish()
     await msg.answer(
         f"Restart states!",
-        reply_markup=keyboards.default.bot_menu
+        reply_markup=keyboards.default.get_bot_menu()
     )
 
 

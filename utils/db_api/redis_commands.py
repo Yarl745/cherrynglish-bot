@@ -1,4 +1,5 @@
 import logging
+import random
 
 from loader import redis
 
@@ -34,3 +35,22 @@ async def set_last_crop_range(user_id: int, last_crop_range: list):
         " ".join(str(param) for param in last_crop_range)
     )
     logging.info(f"For user-{user_id} set last_crop_range={last_crop_range}")
+
+
+async def create_phrases_ine():
+    if not await redis.exists("phrases"):
+        await redis.lpush("phrases", "английский, как пёрышко.. тоже лёгенький 🐖")
+    logging.info(f"Create phrases if its not exist")
+
+
+async def push_new_phrase(phrase: str):
+    await redis.lpush("phrases", phrase)
+    logging.info(f"Admin push new phrase: {phrase}")
+
+
+async def get_random_phrase() -> str:
+    phrases_len = await redis.llen("phrases")
+    phrases: list = await redis.lrange("phrases", start=0, stop=phrases_len-1, encoding="utf8")
+    phrase: str = random.choice(phrases)
+    logging.info(f"Get random phrase: {phrase}")
+    return phrase

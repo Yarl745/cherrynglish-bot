@@ -11,6 +11,7 @@ from filters import IsUser
 from loader import dp
 from states.adding_set import AddingSet
 from utils import clean_previous_menu_msg
+from utils.change_bot_menu import change_bot_menu
 
 
 @dp.message_handler(IsUser(), text="Зацепиться🖇")
@@ -19,7 +20,7 @@ async def show_connection_link(msg: Message, state: FSMContext):
 
     await clean_previous_menu_msg(msg, state)
     await state.finish()
-    print(1)
+
     connect_link = await get_start_link(user.id, encode=True)
 
     connecting_msg_id = (await msg.answer(
@@ -29,6 +30,8 @@ async def show_connection_link(msg: Message, state: FSMContext):
     )).message_id
 
     await state.update_data(connecting_msg_id=connecting_msg_id)
+
+    await change_bot_menu(state)
 
     logging.info(f"Show connection menu for @{user.username}-{user.id}")
 

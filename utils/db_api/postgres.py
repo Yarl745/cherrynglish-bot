@@ -157,6 +157,16 @@ class Database:
         return set_id
 
 
+    async def delete_set(self, set_id: int):
+        sql = """
+            DELETE FROM Sets
+                WHERE id=$1
+                    RETURNING *;
+        """
+        deleted_set = await self.pool.execute(sql, set_id)
+        logging.info(f"Delete set -> {deleted_set}")
+
+
     async def add_word(self, **data):
         columns = ", ".join(data.keys())
         nums = ", ".join(

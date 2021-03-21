@@ -4,6 +4,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 
 import keyboards
+from utils.change_bot_menu import change_bot_menu
 from utils.repeat_notifications.notify_to_repeat import schedule_repeat
 from keyboards.inline.sets_menu import sets_menu_callback
 from keyboards.inline.word_menu import word_menu_callback
@@ -36,6 +37,8 @@ async def open_set(call: CallbackQuery, state: FSMContext, callback_data: dict):
         learn_words_msg_id=learn_words_msg_id
     )
 
+    await change_bot_menu(state)
+
     await call.answer()
 
     logging.info(f"@{user.username}-{user.id} starts learn set: {set_name}")
@@ -58,7 +61,7 @@ async def know_word(call: CallbackQuery, state: FSMContext):
     except IndexError:
         await msg.delete()
         await msg.answer("Поздравляю! Теперь ты знаешь этот набор.",
-                         reply_markup=keyboards.default.bot_menu)
+                         reply_markup=keyboards.default.get_bot_menu())
         await msg.answer_sticker("CAACAgIAAxkBAAEIu69gVLjRs19x-GQrM1RvAjXPc9HFXAACHQADwDZPE17YptxBPd5IHgQ")
 
         data = await state.get_data()

@@ -5,3 +5,5 @@ from .confirm_burn_menu import get_confirm_burn_menu
 from .sets_menu import get_sets_menu
 from .word_menu import get_word_menu
 from .repeat_set_menu import repeat_set_menu
+from .add_phrase_menu import add_phrase_menu
+from .burn_set_menu import burn_set_menu

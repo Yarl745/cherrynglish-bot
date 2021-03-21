@@ -36,6 +36,7 @@ async def show_adding_info(msg: Message, state: FSMContext):
 
     await AddingSet.read_photos.set()
 
+
     logging.info(f"Show adding set info for @{user.username}-{user.id}")
 
 

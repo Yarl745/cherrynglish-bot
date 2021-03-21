@@ -23,7 +23,7 @@ async def connect_to_user(call: CallbackQuery, state: FSMContext, callback_data:
 
     await msg.delete()
     await msg.answer("Ждём пока @{} подтвердит твой запрос...".format(friend.username),
-                     reply_markup=keyboards.default.bot_menu)
+                     reply_markup=keyboards.default.get_bot_menu())
     await msg.answer_sticker("CAACAgIAAxkBAAIDZmBRR71MwVLXmHhAWfgfJJTqajMxAAIMAAPANk8T4s8j_8J3n7weBA")
 
     await notify_to_confirm(friend_id, user.id)
@@ -41,7 +41,7 @@ async def connect_to_user(call: CallbackQuery, state: FSMContext, callback_data:
 
     await msg.delete()
 
-    await msg.answer("Соединение было отменено(", reply_markup=keyboards.default.bot_menu)
+    await msg.answer("Соединение было отменено(", reply_markup=keyboards.default.get_bot_menu())
     await msg.answer_sticker("CAACAgIAAxkBAAIETGBTWE8YswPPd3Q_A0KVwjWhzuxJAAIRAAPANk8TDaqzD9wePuUeBA")
 
     await call.answer()

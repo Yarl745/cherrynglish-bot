@@ -8,6 +8,7 @@ import keyboards
 from filters import IsUser
 from loader import dp
 from utils import clean_previous_menu_msg
+from utils.change_bot_menu import change_bot_menu
 
 
 @dp.message_handler(IsUser(), text="Наборы📚")
@@ -25,6 +26,8 @@ async def show_sets(msg: Message, state: FSMContext):
     )).message_id
 
     await state.update_data(sets_msg_id=sets_msg_id)
+
+    await change_bot_menu(state)
 
     logging.info(f"Show connection menu for @{user.username}-{user.id}")
 

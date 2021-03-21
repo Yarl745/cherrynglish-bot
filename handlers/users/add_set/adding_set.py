@@ -2,11 +2,10 @@ import logging
 from io import BytesIO
 
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ContentTypes, Message, ReplyKeyboardRemove, InputFile, MediaGroup, InputMediaPhoto
+from aiogram.types import ContentTypes, Message, ReplyKeyboardRemove, MediaGroup, InputMediaPhoto
 
 import keyboards
 from data.config import HELPER_CHANNEL_ID
-from filters import IsUser
 from handlers.users.add_set.click_add import show_adding_info
 from loader import dp, db, bot
 from states.adding_set import AddingSet
@@ -48,7 +47,7 @@ async def cancel_creating_set(msg: Message, state: FSMContext):
 
     await msg.answer(
         "Создание набора отменено.",
-        reply_markup=keyboards.default.bot_menu
+        reply_markup=keyboards.default.get_bot_menu()
     )
     await msg.answer_sticker("CAACAgIAAxkBAAPMYE3_4aKH6ddyThPFL2npELzRzVUAAhAAA8A2TxPqgYop8R8C6B4E")
 
@@ -129,7 +128,7 @@ async def save_set(msg: Message, state: FSMContext):
 
     await msg.answer(
         "Твой набор слов был успеешно создан!",
-        reply_markup=keyboards.default.bot_menu
+        reply_markup=keyboards.default.get_bot_menu()
     )
     await msg.answer_sticker("CAACAgIAAxkBAAIB-2BQzR9z-1xm1HM6zK9C_yBuTwgdAAIdAAPANk8TXtim3EE93kgeBA")
 

@@ -1,12 +1,22 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-bot_menu = ReplyKeyboardMarkup(
-    [
-        [
-            KeyboardButton("Добавить✨"),
-            KeyboardButton("Зацепиться🖇"),
-            KeyboardButton("Наборы📚")
+
+def get_bot_menu(in_set: bool = False) -> ReplyKeyboardMarkup:
+    markup: list
+    if in_set:
+        markup = [
+            [
+                KeyboardButton("Добавить✨"),
+                KeyboardButton("🔥Набор🔥"),
+                KeyboardButton("Наборы📚")
+            ]
         ]
-    ],
-    resize_keyboard=True
-)
+    else:
+        markup = [
+            [
+                KeyboardButton("Добавить✨"),
+                KeyboardButton("Зацепиться🖇"),
+                KeyboardButton("Наборы📚")
+            ]
+        ]
+    return ReplyKeyboardMarkup(markup, resize_keyboard=True)

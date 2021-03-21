@@ -12,3 +12,6 @@ async def show_info(msg: Message):
     for num, user in enumerate(users, start=1):
         out_text += f"\n[{num}] @{user['username']} with id={user['user_id']};"
     await msg.answer(out_text)
+
+
+

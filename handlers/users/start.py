@@ -25,11 +25,11 @@ async def ask_to_connect(msg: Message):
     if user.id == friend_id:
         return
     elif not (await redis_commands.is_user(friend_id)):
-        await msg.answer("Такого пользователя не существует...", reply_markup=keyboards.default.bot_menu)
+        await msg.answer("Такого пользователя не существует...", reply_markup=keyboards.default.get_bot_menu())
         await msg.answer_sticker("CAACAgIAAxkBAAIDXGBRMulMsWISnPXOc16gVBC-09MmAAIYAAPANk8T1vonv5xqGPgeBA")
         return
     elif await db.is_users_connected(user.id, friend_id):
-        await msg.answer("Ты уже закреплен за этого пользователя...", reply_markup=keyboards.default.bot_menu)
+        await msg.answer("Ты уже закреплен за этого пользователя...", reply_markup=keyboards.default.get_bot_menu())
         await msg.answer_sticker("CAACAgIAAxkBAAIEu2BTYZvJKYkVXcleRsmhI8V4q4A9AAINAAPANk8TpPnh9NR4jVMeBA")
         return
 
@@ -51,7 +51,7 @@ async def bot_start_by_user(msg: types.Message, state: FSMContext):
 
     await msg.answer(
         f"Привет, {user.full_name}, черешенка тебя помнит!",
-        reply_markup=keyboards.default.bot_menu
+        reply_markup=keyboards.default.get_bot_menu()
     )
     await msg.answer_sticker("CAACAgIAAxkBAAM_YE3OhegbsRHfhEIpsDR-_7h-psIAAg0AA8A2TxOk-eH01HiNUx4E")
 
@@ -102,8 +102,8 @@ async def bot_start(msg: types.Message):
     await asyncio.sleep(7)
 
     await msg.answer(
-        "И помни, что чем глупее и постыднее ассоциация к слову — тем она лучше!",
-        reply_markup=keyboards.default.bot_menu
+        "И помни, что чем глупее и постыднее ассоциация к слову — тем она лучше запомниться!",
+        reply_markup=keyboards.default.get_bot_menu()
     )
     await msg.answer_sticker("CAACAgIAAxkBAAIJeWBWMPFTB6J-aY0eU2oWK_NVJ5B2AAIIAAPANk8Tb2wmC94am2keBA")
 

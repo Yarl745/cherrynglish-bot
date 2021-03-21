@@ -1,5 +1,6 @@
 from aiogram import executor
 
+from utils.db_api import redis_commands
 from utils.repeat_notifications.restart_repeat_notifications import restart_repeat_notifications
 from loader import db, scheduler
 from handlers import dp
@@ -14,6 +15,8 @@ async def on_startup(dispatcher):
     await db.config_timezone()
 
     await restart_repeat_notifications()
+
+    await redis_commands.create_phrases_ine()
 
 
 if __name__ == '__main__':

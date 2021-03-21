@@ -4,13 +4,22 @@ from PIL import Image, ImageFont
 from PIL.ImageDraw import ImageDraw
 from aiogram.types import InputFile
 from asgiref.sync import sync_to_async
+from sys import platform
+
 
 
 @sync_to_async
 def get_drawn_img(img_file: BytesIO) -> InputFile:
     img: Image.Image = Image.open(img_file)
     draw = ImageDraw(img)
-    fnt = ImageFont.truetype("DejaVuSans.ttf", 70)
+
+    font: str
+    if platform == "linux" or platform == "linux2":
+        font = "DejaVuSans.ttf"
+    elif platform == "win32" or platform == "windows":
+        font = "arial.ttf"
+
+    fnt = ImageFont.truetype(font, 70)
 
     draw.line((0, 0, 0, img.size[1]), width=12, fill=65280)
     draw.text((15, 0), str(0), font=fnt, fill=65280)
