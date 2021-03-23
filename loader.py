@@ -15,8 +15,8 @@ from utils.db_api.postgres import Database
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = RedisStorage2(
     host=REDIS_HOST,
-    # port=REDIS_PORT,
-    # password=REDIS_PASSWORD
+    port=REDIS_PORT,
+    password=REDIS_PASSWORD
 )
 dp = Dispatcher(bot, storage=storage)
 

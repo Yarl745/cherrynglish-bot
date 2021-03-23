@@ -1,8 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from loader import db
-
 word_menu_callback = CallbackData("word_menu", "action", "set_id",
                                   "word_id", "side")
 

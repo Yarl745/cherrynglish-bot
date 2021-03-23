@@ -21,7 +21,7 @@ async def get_next_page(call: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query_handler(sets_menu_callback.filter(action="previous_page"))
-async def get_next_page(call: CallbackQuery, state: FSMContext):
+async def get_previous_page(call: CallbackQuery, state: FSMContext):
     msg = call.message
     user = call.from_user
 

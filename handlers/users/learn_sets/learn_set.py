@@ -22,10 +22,11 @@ async def open_set(call: CallbackQuery, state: FSMContext, callback_data: dict):
     word_ids = [word["word_id"] for word in await db.get_shuffled_word_ids(set_id)]
     word = dict(await db.get_word_side(word_ids.pop(0)))
 
-    learn_words_msg_id = (await msg.answer_photo(
+    learn_words_msg = (await msg.answer_photo(
         word.pop("word_img_id"),
         reply_markup=keyboards.inline.get_word_menu(word=word)
-    )).message_id
+    )
+                       )
 
     await clean_previous_menu_msg(msg, state)
     await state.finish()
@@ -34,7 +35,7 @@ async def open_set(call: CallbackQuery, state: FSMContext, callback_data: dict):
         word_ids=word_ids,
         set_id=set_id,
         set_name=set_name,
-        learn_words_msg_id=learn_words_msg_id
+        learn_words_msg_id=learn_words_msg.message_id
     )
 
     await change_bot_menu(state)
@@ -60,8 +61,10 @@ async def know_word(call: CallbackQuery, state: FSMContext):
         )
     except IndexError:
         await msg.delete()
-        await msg.answer("Поздравляю! Теперь ты знаешь этот набор.",
-                         reply_markup=keyboards.default.get_bot_menu())
+        await msg.answer(
+            "Поздравляю! Теперь ты знаешь этот набор.",
+            reply_markup=keyboards.default.get_bot_menu()
+        )
         await msg.answer_sticker("CAACAgIAAxkBAAEIu69gVLjRs19x-GQrM1RvAjXPc9HFXAACHQADwDZPE17YptxBPd5IHgQ")
 
         data = await state.get_data()
@@ -93,7 +96,7 @@ async def dont_know_word(call: CallbackQuery, state: FSMContext, callback_data: 
 
     await call.answer()
 
-    logging.info(f"@{user.username}-{user.id} dont know word -- {word_id}")
+    logging.info(f"@{user.username}-{user.id} dont know word -- {unknown_word_id}")
 
 
 @dp.callback_query_handler(word_menu_callback.filter(action="change_side"))
@@ -180,9 +183,9 @@ async def add_assoc(msg: Message, state: FSMContext):
     user = msg.from_user
     assoc = msg.text
 
-    if len(assoc) > 125:
+    if len(assoc) > 150:
         await msg.answer("Какая-то слишком длинная ассоциация у тебя 🥴\n\n"
-                         "Поробуй уложиться в 125 символов:")
+                         "Поробуй уложиться в 150 символов:")
         return
 
     await msg.delete()
@@ -206,5 +209,3 @@ async def reload_transl_side(word_id: int, user_id: int, learn_words_msg_id: int
         chat_id=user_id, message_id=learn_words_msg_id,
         reply_markup=keyboards.inline.get_word_menu(word=word, side="word")
     )
-
-

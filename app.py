@@ -5,6 +5,7 @@ from utils.repeat_notifications.restart_repeat_notifications import restart_repe
 from loader import db, scheduler
 from handlers import dp
 from utils.notify_admins import on_startup_notify
+from utils.set_bot_commands import register_bot_commands
 
 
 async def on_startup(dispatcher):
@@ -16,7 +17,7 @@ async def on_startup(dispatcher):
 
     await restart_repeat_notifications()
 
-    await redis_commands.create_phrases_ine()
+    await register_bot_commands()
 
 
 if __name__ == '__main__':

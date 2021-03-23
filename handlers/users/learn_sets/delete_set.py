@@ -16,8 +16,10 @@ async def ask_delete_set(msg: Message, state: FSMContext):
 
     set_name = (await state.get_data())["set_name"]
 
-    await msg.answer("Хочешь сжечь набор {}?".format(set_name),
-                     reply_markup=keyboards.inline.burn_set_menu)
+    await msg.answer(
+        "Хочешь сжечь набор {}?".format(set_name),
+        reply_markup=keyboards.inline.burn_set_menu
+    )
 
     await msg.delete()
 
@@ -38,10 +40,10 @@ async def delete_set(call: CallbackQuery, state: FSMContext, callback_data: dict
 
 
 @dp.callback_query_handler(burn_set_menu_callback.filter(action="cancel"))
-async def delete_set(call: CallbackQuery, state: FSMContext, callback_data: dict):
+async def cancel_delete_set(call: CallbackQuery, state: FSMContext, callback_data: dict):
     user = call.from_user
     msg = call.message
 
     await msg.delete()
 
-    logging.info(f"@{user.username}-{user.id} cancel deleted set")
+    logging.info(f"@{user.username}-{user.id} canceled deleting set")

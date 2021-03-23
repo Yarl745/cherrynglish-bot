@@ -13,16 +13,19 @@ async def change_bot_menu(state: FSMContext):
     user = User.get_current()
 
     phrase = await redis_commands.get_random_phrase()
-
     set_id = (await state.get_data()).get("set_id", None)
 
     msg: Message
     if set_id:
-        msg = await bot.send_message(user.id, text=phrase,
-                                     reply_markup=keyboards.default.get_bot_menu(in_set=True))
+        msg = await bot.send_message(
+            user.id, text=phrase,
+            reply_markup=keyboards.default.get_bot_menu(in_set=True)
+        )
     else:
-        msg = await bot.send_message(user.id, text=phrase,
-                                     reply_markup=keyboards.default.get_bot_menu(in_set=False))
+        msg = await bot.send_message(
+            user.id, text=phrase,
+            reply_markup=keyboards.default.get_bot_menu(in_set=False)
+        )
 
     await state.update_data(last_phrase_msg_id=msg.message_id)
 

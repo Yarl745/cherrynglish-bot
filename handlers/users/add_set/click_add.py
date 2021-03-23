@@ -10,6 +10,7 @@ from filters import IsUser
 from loader import dp
 from states.adding_set import AddingSet
 from utils import clean_previous_menu_msg
+from utils.db_api import redis_commands
 
 
 @dp.message_handler(IsUser(), text="Добавить✨")
@@ -22,9 +23,9 @@ async def show_adding_info(msg: Message, state: FSMContext):
                 "2) перейти в Cherrynglish бота;\n"
                 "3) прикрепить все скриншоты слов, которые будут в твоём наборе.",
     )
-    # await msg.answer_media_group(
-    #     media=help_album
-    # )
+    await msg.answer_media_group(
+        media=help_album
+    )
     await msg.answer(
         "Сначала прикрепи скриншоты:",
         reply_markup=keyboards.default.read_photo_menu
@@ -32,10 +33,9 @@ async def show_adding_info(msg: Message, state: FSMContext):
 
     await clean_previous_menu_msg(msg, state)
     await state.finish()
-    await state.update_data(photo_ids=[])
+    await redis_commands.clean_all_photo_ids(user.id)
 
     await AddingSet.read_photos.set()
-
 
     logging.info(f"Show adding set info for @{user.username}-{user.id}")
 

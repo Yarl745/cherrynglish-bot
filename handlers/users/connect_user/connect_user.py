@@ -1,16 +1,12 @@
 import logging
-import re
 
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import CommandStart
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 
 import keyboards
-from handlers.users.start import bot_start
 from keyboards.inline.confirm_user_menu import confirm_user_menu_callback
 from keyboards.inline.connect_user_menu import connect_user_menu_callback
 from loader import dp, bot, db
-from utils.db_api import redis_commands
 
 
 @dp.callback_query_handler(connect_user_menu_callback.filter(action="connect"))
@@ -22,8 +18,11 @@ async def connect_to_user(call: CallbackQuery, state: FSMContext, callback_data:
     friend = (await msg.bot.get_chat_member(friend_id, friend_id)).user
 
     await msg.delete()
-    await msg.answer("Ждём пока @{} подтвердит твой запрос...".format(friend.username),
-                     reply_markup=keyboards.default.get_bot_menu())
+
+    await msg.answer(
+        "Ждём пока @{} подтвердит твой запрос...".format(friend.username),
+        reply_markup=keyboards.default.get_bot_menu()
+    )
     await msg.answer_sticker("CAACAgIAAxkBAAIDZmBRR71MwVLXmHhAWfgfJJTqajMxAAIMAAPANk8T4s8j_8J3n7weBA")
 
     await notify_to_confirm(friend_id, user.id)
@@ -96,7 +95,3 @@ async def notify_to_confirm(confirm_user_id: int, by_user_id: int):
     )
 
     logging.info(f"Notify user-{confirm_user_id} about connection with @{by_user.username}-{by_user.id}")
-
-
-
-

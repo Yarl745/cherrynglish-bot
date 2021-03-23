@@ -14,7 +14,6 @@ from utils.db_api import redis_commands
 @dp.message_handler(Command("add_phrase"), user_id=config.ADMINS)
 async def ask_add_phrase(msg: Message):
     user = msg.from_user
-
     phrase = msg.get_args()
 
     if len(phrase) == 0 or len(phrase) > 150:
@@ -34,7 +33,6 @@ async def add_phrase(call: CallbackQuery, state: FSMContext, callback_data: dict
     phrase = msg.text
 
     await redis_commands.push_new_phrase(phrase)
-    await msg.bot.send_message(config.HELPER_CHANNEL_ID, phrase)
 
     await msg.delete()
 

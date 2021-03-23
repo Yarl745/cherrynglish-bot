@@ -5,7 +5,7 @@ import re
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, User
 from aiogram.utils.deep_linking import decode_payload
 
 import keyboards
@@ -60,7 +60,7 @@ async def bot_start_by_user(msg: types.Message, state: FSMContext):
 
 @dp.message_handler(CommandStart())
 async def bot_start(msg: types.Message):
-    user = msg.from_user
+    user = User.get_current()
 
     await db.add_user(
         id=user.id,

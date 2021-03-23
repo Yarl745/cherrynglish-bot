@@ -2,10 +2,9 @@ import logging
 from io import BytesIO
 
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ContentTypes, Message, ReplyKeyboardRemove, MediaGroup, InputMediaPhoto
+from aiogram.types import ContentTypes, Message, ReplyKeyboardRemove, MediaGroup, InputMediaPhoto, User
 
 import keyboards
-from data.config import HELPER_CHANNEL_ID
 from handlers.users.add_set.click_add import show_adding_info
 from loader import dp, db, bot
 from states.adding_set import AddingSet
@@ -15,17 +14,19 @@ from utils.photo_crop import get_drawn_img, get_separated_imgs
 
 
 @rate_limit(0)
+@dp.message_handler(state=AddingSet.read_set_name, content_types=ContentTypes.PHOTO)
 @dp.message_handler(state=AddingSet.read_photos, content_types=ContentTypes.PHOTO)
-async def read_photo(msg: Message, state: FSMContext):
+async def read_photo(msg: Message):
+    user = msg.from_user
     await msg.bot.send_chat_action(msg.chat.id, 'upload_photo')
-    async with state.proxy() as data:
-        data["photo_ids"].append(msg.photo[-1].file_id)
+    photo_id = msg.photo[-1].file_id
+    await redis_commands.push_photo_id(user.id, photo_id)
 
 
 @dp.message_handler(state=AddingSet.read_photos, text="Продолжить⏩")
-async def save_photos(msg: Message, state: FSMContext):
-    photo_ids = (await state.get_data())["photo_ids"]
+async def save_photos(msg: Message):
     user = msg.from_user
+    photo_ids = await redis_commands.get_all_photo_ids(user.id)
 
     if not photo_ids:
         await msg.answer("Сначала прикрепи скриншоты для своего набора 🥴")
@@ -38,7 +39,7 @@ async def save_photos(msg: Message, state: FSMContext):
 
     await AddingSet.read_set_name.set()
 
-    logging.info(f"For @{user.username}-{user.id} save photos in redis {photo_ids}")
+    logging.info(f"For @{user.username}-{user.id} save photos in redis len({len(photo_ids)})")
 
 
 @dp.message_handler(state=AddingSet.read_photos, text="Отменить↩️")
@@ -67,10 +68,9 @@ async def read_set_name(msg: Message, state: FSMContext):
             "Попробуй ввести его ещё раз:"
         )
         return
-
     await state.update_data(set_name=set_name)
-    photo_id: str = (await state.get_data())["photo_ids"][0]
 
+    photo_id: str = await redis_commands.get_photo_id(user.id)
     await msg.bot.send_chat_action(user.id, "upload_photo")
 
     img_file = BytesIO()
@@ -99,11 +99,17 @@ async def save_set(msg: Message, state: FSMContext):
 
     await msg.bot.send_chat_action(user.id, "upload_photo")
     await AddingSet.loading_data.set()
+    await msg.answer("Загрузка набора...")
+    await msg.answer_sticker(
+        "CAACAgIAAxkBAAEIxr1gV8whFcjH7n98RLQQKls9mGg49QACGAADwDZPE9b6J7-cahj4HgQ",
+        reply_markup=ReplyKeyboardRemove()
+    )
 
     data = await state.get_data()
     crop_range = data["crop_range"]
     set_name = data["set_name"]
-    photo_ids = data["photo_ids"]
+    photo_ids = await redis_commands.get_all_photo_ids(user.id)
+    await redis_commands.clean_all_photo_ids(user.id)
 
     set_id = await db.add_set(
         user_id=user.id,
@@ -116,10 +122,11 @@ async def save_set(msg: Message, state: FSMContext):
         await msg.answer("Ты задал(-а) дипазон, который выходит за пределы размера какого-то "
                          "твоего скриншота 🥴\n"
                          "Постарайся добавлять скриншоты одного размера!")
+        await db.delete_set(set_id)
         await show_adding_info(msg, state)
         return
 
-    logging.info(f"Prepared words data for @{user.username}-{user.id}")
+    logging.info(f"Prepared words_data[len-{len(words_data)}] for @{user.username}-{user.id}")
 
     for word_data in words_data:
         await db.add_word(**word_data)
@@ -156,19 +163,18 @@ async def config_crop_range(msg: Message, state: FSMContext):
     crop_range = [int(num) for num in crop_range_str.split(" ")]
     crop_range.sort()
 
-    photo_id: str = (await state.get_data())["photo_ids"][0]
+    photo_id: str = await redis_commands.get_photo_id(user.id)
     await msg.bot.send_chat_action(user.id, "upload_photo")
 
     img_file = BytesIO()
     photo = await msg.bot.get_file(photo_id)
-
     await photo.download(destination=img_file)
 
     word_img, transl_img = await get_separated_imgs(img_file, *crop_range)
 
     if not word_img:
         await msg.answer("Ты задал(-а) дипазон, который выходит за пределы размера картинки 🥴\n"
-                         "На картинке с зелённой полосой показаны допустимые для тебя значения высоты.")
+                         "На картинке с зелённой линией показаны допустимые для тебя значения высоты.")
         return
 
     separated_imgs_album = MediaGroup()
@@ -191,18 +197,25 @@ async def config_crop_range(msg: Message, state: FSMContext):
 
 async def prepare_words_data(set_id: int, photo_ids: list, crop_range: list) -> list:
     words_data = []
+    user_id = User.get_current().id
 
     for photo_id in photo_ids:
         img_file = BytesIO()
         await (await bot.get_file(photo_id)).download(destination=img_file)
         word_img, transl_img = await get_separated_imgs(img_file, *crop_range)
+        logging.info(f" --- {word_img} --- {transl_img} ---")
 
         # If some img from the range smaller than the crop size
         if not word_img:
             return None
 
-        word_img_id = (await bot.send_photo(HELPER_CHANNEL_ID, word_img)).photo[-1].file_id
-        transl_img_id = (await bot.send_photo(HELPER_CHANNEL_ID, transl_img)).photo[-1].file_id
+        word_img_msg = await bot.send_photo(user_id, word_img)
+        word_img_id = word_img_msg.photo[-1].file_id
+        await word_img_msg.delete()
+
+        transl_img_msg = await bot.send_photo(user_id, transl_img)
+        transl_img_id = transl_img_msg.photo[-1].file_id
+        await transl_img_msg.delete()
 
         words_data.append(dict(
             set_id=set_id,

@@ -36,6 +36,3 @@ repeat_stages = [
     timedelta(days=90), timedelta(days=180), timedelta(days=360),
     timedelta(days=720)
 ]
-
-
-HELPER_CHANNEL_ID = -1001316268421
