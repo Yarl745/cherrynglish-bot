@@ -290,12 +290,12 @@ class Database:
         return transl_side
 
 
-    async def get_shuffled_word_ids(self, set_id: int) -> list:
+    async def get_shuffled_word_ids(self, set_id: int, appearance_rate: int) -> list:
         sql = """
             SELECT id as word_id FROM Words WHERE set_id=$1;
         """
 
-        word_ids = await self.pool.fetch(sql, set_id)
+        word_ids = await self.pool.fetch(sql, set_id) * appearance_rate
         random.shuffle(word_ids)
 
         logging.info(f"Get word_ids-{word_ids} in set-{set_id} for user")

@@ -19,7 +19,7 @@ async def open_set(call: CallbackQuery, state: FSMContext, callback_data: dict):
     set_id = int(callback_data["set_id"])
     set_name = callback_data["set_name"]
 
-    word_ids = [word["word_id"] for word in await db.get_shuffled_word_ids(set_id)]
+    word_ids = [word["word_id"] for word in await db.get_shuffled_word_ids(set_id, appearance_rate=2)]
     word = dict(await db.get_word_side(word_ids.pop(0)))
 
     learn_words_msg = (await msg.answer_photo(
