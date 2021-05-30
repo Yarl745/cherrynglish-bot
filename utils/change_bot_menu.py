@@ -1,18 +1,16 @@
-import asyncio
 import logging
 
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, User
 
 import keyboards
-from loader import bot
-from utils.db_api import redis_commands
+from loader import bot, db
 
 
 async def change_bot_menu(state: FSMContext):
     user = User.get_current()
 
-    phrase = await redis_commands.get_random_phrase()
+    phrase = await db.get_random_phrase()
     set_id = (await state.get_data()).get("set_id", None)
 
     msg: Message

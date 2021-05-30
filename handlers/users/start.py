@@ -10,7 +10,7 @@ from aiogram.utils.deep_linking import decode_payload
 
 import keyboards
 from filters import IsUser
-from loader import dp, db
+from loader import dp, db, scheduler
 from utils.db_api import redis_commands
 
 
@@ -69,6 +69,12 @@ async def bot_start(msg: types.Message):
     )
     await redis_commands.set_new_user(user_id=user.id)
 
+    scheduler.add_job(greeting, args=(msg, ))
+
+
+async def greeting(msg: types.Message):
+    user = User.get_current()
+
     await msg.answer(f"Привет, {user.full_name}!")
     await msg.answer(f"Я черешенка, которая будет помогать тебе изучать новые английские слова.")
     await msg.answer_sticker("CAACAgIAAxkBAAMDYEy1-FTmlee0a0sLpyxSk-M1LuwAAg0AA8A2TxOk-eH01HiNUx4E")
@@ -77,32 +83,31 @@ async def bot_start(msg: types.Message):
 
     wordbit_link = "https://play.google.com/store/apps/details?id=net.wordbit.enru"
     await msg.answer(
-        f"Изночально весь функционал этого бота будет привязан к <a href='{wordbit_link}'>WordBit</a> приложению. "
-        f"Если ты пользователь техники Apple, то тебе придётся найти другое приложение для нахождения слов. "
-        f"Главное чтобы перевод и само слово находилось на одном экране!\n\n"
+        f"Изночально весь функционал этого бота будет привязан к приложению <a href='{wordbit_link}'>WordBit</a> "
+        f"или к любому другому, в котором слово и перевод будут находиться на одном экране.\n\n"
         f"Качай WordBit —> делай скрины слов, которые не знаешь —> заливай пачки скриншотов в бота "
         f"—> учи загруженные наборы слов 😉",
         disable_web_page_preview=True
     )
     await msg.answer_sticker("CAACAgIAAxkBAAMFYEy83a4vWMnl1iaN1Gi07fd6fugAAh0AA8A2TxNe2KbcQT3eSB4E")
 
-    await asyncio.sleep(7)
+    await asyncio.sleep(14)
 
     await msg.answer(
         "Преимущество этого бота в том, что он будет:\n"
         "1) предоставлять удобный механизм изучения слов;\n"
         "2) напоминать, когда нужно повторить определённый набор, для того чтобы "
-        "ты не забывал(-а) выученные слова;\n"
+        "ты не забывал выученные слова;\n"
         "3) позволять дописывать свои ассоциации к словам;\n"
         "4) давать возможность делиться наборами c другими участниками бота и "
         "весело придумывать ассоциации к словам вместе с друзьями."
     )
     await msg.answer_sticker("CAACAgIAAxkBAAMHYEy-1ZR0YqSU-36ANwmSftFGAmkAAgYAA8A2TxPHyqL0sm5wdh4E")
 
-    await asyncio.sleep(7)
+    await asyncio.sleep(14)
 
     await msg.answer(
-        "И помни, что чем глупее и постыднее ассоциация к слову — тем она лучше запомниться!",
+        "И помни, что чем глупее и постыднее ассоциация к слову — тем лучше она запомниться!",
         reply_markup=keyboards.default.get_bot_menu()
     )
     await msg.answer_sticker("CAACAgIAAxkBAAIJeWBWMPFTB6J-aY0eU2oWK_NVJ5B2AAIIAAPANk8Tb2wmC94am2keBA")

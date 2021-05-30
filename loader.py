@@ -16,7 +16,6 @@ bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 storage = RedisStorage2(
     host=REDIS_HOST,
     port=REDIS_PORT,
-    password=REDIS_PASSWORD
 )
 dp = Dispatcher(bot, storage=storage)
 
@@ -25,7 +24,7 @@ db: Database = loop.run_until_complete(Database.create())
 
 # redis://:p2844fdfe9ec9da59733...
 # redis_uri = f"redis://{REDIS_HOST}"
-redis_uri = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+redis_uri = f"redis://{REDIS_HOST}:{REDIS_PORT}"
 redis: Redis = async_to_sync(aioredis.create_redis_pool)(redis_uri, db=1)
 
 scheduler = AsyncIOScheduler()

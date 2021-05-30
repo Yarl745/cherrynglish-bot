@@ -7,8 +7,7 @@ from aiogram.types import Message, CallbackQuery
 import keyboards
 from data import config
 from keyboards.inline.add_phrase_menu import add_phrase_menu_callback
-from loader import dp
-from utils.db_api import redis_commands
+from loader import dp, db
 
 
 @dp.message_handler(Command("add_phrase"), user_id=config.ADMINS)
@@ -32,7 +31,7 @@ async def add_phrase(call: CallbackQuery, state: FSMContext, callback_data: dict
     msg = call.message
     phrase = msg.text
 
-    await redis_commands.push_new_phrase(phrase)
+    await db.push_new_phrase(phrase)
 
     await msg.delete()
 

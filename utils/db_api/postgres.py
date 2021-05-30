@@ -52,6 +52,12 @@ class Database:
             );
             CREATE INDEX IF NOT EXISTS set_for_words_idx ON Words(set_id);
             
+            CREATE TABLE IF NOT EXISTS Phrases(
+                id serial primary key,
+                phrase text
+            );
+            CREATE INDEX IF NOT EXISTS phrases_id_idx ON Phrases(id);
+            
             CREATE TABLE IF NOT EXISTS Repeats(
                 set_id integer not null references Sets(id) on delete cascade,
                 user_id integer not null,
@@ -64,6 +70,24 @@ class Database:
         await self.pool.execute(sql)
 
         logging.info(f"Create all tables (if not exist)")
+
+
+    async def push_new_phrase(self, phrase: str):
+        sql = f"""
+            INSERT INTO Phrases(phrase) VALUES ($1);
+        """
+        await self.pool.execute(sql, phrase)
+        logging.info(f"Admin push new phrase: {phrase}")
+
+
+    async def get_random_phrase(self) -> str:
+        sql = """
+            SELECT phrase FROM Phrases
+                ORDER BY random() LIMIT 1;
+        """
+        phrase = await self.pool.fetchval(sql)
+        logging.info(f"Get random phrase: {phrase}")
+        return phrase
 
 
     async def get_repeat(self, user_id: int, set_id: int) -> dict:
